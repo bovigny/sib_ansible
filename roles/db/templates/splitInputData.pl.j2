@@ -1,0 +1,74 @@
+#!/usr/bin/perl -w
+
+#########################################################################################################
+#													#
+# splits input file into X files. can be used to paralellize preparation of the input file 		#
+#													#
+# parameters: 												#
+#   1) input file  [!!!] important, file has to be sorted on the assay id column [!!!]			#
+#   2) no assays per batch - has to be determined before						#
+#   3) maximal number of batches									#
+#													#	
+# 08.10.2013 - MW											#
+#													#	
+#########################################################################################################
+
+if( @ARGV != 3  )
+{ 
+	print "Please start with three parameters [1] input file [2] no. assays per batch [3] max no. of batches.\n"; 
+	exit 0;  
+}
+
+$inputfile = $ARGV[0];
+$assaysPerProcedure=$ARGV[1];
+$maxsplit=$ARGV[2];
+
+open( IN, $inputfile ) or die "$!";
+open( OUT, ">>/root/databases/assays/batch1.txt"  ) or die "$!";
+
+$linecounter = 1;
+$assaycounter = 1;
+$x=1;
+$lastline="";
+
+while( my $line = <IN> )
+{		
+  chomp $line;
+  @split = split('\t',$line);
+   
+  ## first line is ignored as lines have to checked against the X-1th line to identify assay switches
+  if( $linecounter != 1 )
+  {
+    @lastlinesplit = split('\t',$lastline);
+    if( $lastlinesplit[3] ne $split[3] )
+    {
+      $assaycounter=$assaycounter+1;
+      $startline = $linecounter;
+    }
+
+  ## if number of assays reached a new batch file is created
+  # $startline == $linecounter - change is only performed once
+  # conditions: N+1 batch (due to modulo operation) is added to the Nth assay
+    if ( $assaycounter%$assaysPerProcedure==0 && $startline == $linecounter )
+    {
+      if( $x < $maxsplit)
+      {
+	close(OUT) ; 
+	$x=$x+1;
+	open( OUT, ">>/root/databases/assays/batch$x.txt"  ) or die "$!";
+	}
+    }
+
+    print OUT "$lastline\n";
+  }
+
+  $linecounter=$linecounter+1;
+  $lastline=$line;
+}
+
+## as first line is left out, last line has to be added after the loop
+print OUT "$lastline\n";
+
+close( OUT );
+close( IN );
+

@@ -1,0 +1,9 @@
+ntpserver: 172.16.31.18
+
+mysqlservice: mysqld
+mysql_port: 3306
+chemblversion: chembl_22
+mysql_root_password: C9#pri%8
+dbuser: cbovigny
+dbname: SBI
+upassword: cbovigny

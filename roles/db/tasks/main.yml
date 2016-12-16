@@ -1,0 +1,209 @@
+---
+# This playbook will install MariaDB and create db user and give permissions.
+##Variables ##
+
+- name: Creates directory rpm
+  file: path=/root/rpm state=directory
+
+#- name: Test wget http://dev.mysql.com/get/mysql57-community-release-el7-7.noarch.rpm
+#  stat: path=/root/rpm/mysql57-community-release-el7-7.noarch.rpm
+#  register: rpm
+
+- name: Get YUM repository for MySQL
+  get_url:
+      url: http://dev.mysql.com/get/mysql57-community-release-el7-7.noarch.rpm
+      dest: /tmp/mysql57-community-release-el7-7.noarch.rpm
+
+- name: Install YUM repository for MySQL
+  shell: /bin/rpm -Uvh /tmp/mysql57-community-release-el7-7.noarch.rpm
+  register: yum_repo_return
+  failed_when: "'conflict' in yum_repo_return.stderr"
+
+- name: Install MySQL community server
+  yum: name=mysql-community-server state=present
+  
+- name: Launch MySQL service
+  service: name=mysqld state=started enabled=yes
+
+- name: Install required python MySQLdb lib to create databases and users
+  yum: name={{ item }} state=present
+  with_items:
+   - gcc-c++
+   - MySQL-python
+
+- name: Get temporary MySQL root password
+  shell: grep 'temporary password' /var/log/mysqld.log | awk '{print $NF}'
+  register: mysql_root_temp_password
+
+- name: Set the MySQL root password
+  shell: mysqladmin -uroot --password={{ mysql_root_temp_password.stdout }} password {{ mysql_root_password }}
+  register: mysql_admin_root_password_result 
+  failed_when: "'(using password: NO)' in mysql_admin_root_password_result.stderr"
+
+
+- name: Create Mysql configuration file
+  template: src=my.cnf.j2 dest=/etc/my.cnf
+  notify:
+  - restart mysqld
+
+#  mysql_db: login_user=root login_password={{ mysql_root_password }} name= MY_DATATABLE encoding=utf8 collation=utf8_bin
+- name: Create Test Table MY_DATATABLE
+  mysql_db: login_user=root login_password={{ mysql_root_password }} name=MY_DATATABLE encoding=utf8 collation=utf8_bin
+
+- name: Create MY_DBA user in MySQL and grant privileges
+  mysql_user: login_user=root login_password={{ mysql_root_password }} user=MY_DBA password=C9#pri%8 host='%' priv='MY_DATATABLE.*:ALL'
+
+#- name: Download mysql57-community-release-el7-7.noarch.rpm
+#  shell: "wget -O /root/rpm/mysql57-community-release-el7-7.noarch.rpm http://dev.mysql.com/get/mysql57-community-release-el7-7.noarch.rpm"
+#  when: not rpm.stat.exists
+
+#- name: Install the local file
+#  shell: yum -y localinstall /root/rpm/mysql57-community-release-el7-7.noarch.rpm
+
+#- name: Install mysql-community-server
+#  yum: name=mysql-community-server state=installed
+
+#- name: Start mysql Service
+#  service: name=mysqld state=started enabled=yes
+
+#- name: Install MariaDB package
+#  yum: name={{ item }} state=installed
+#  with_items:
+#   - mariadb-server
+#   - MySQL-python
+
+#- name: Configure SELinux to start mysql on any port
+#  seboolean: name=mysql_connect_any state=true persistent=yes
+
+#- name: Create Mysql configuration file
+#  template: src=my.cnf.j2 dest=/etc/my.cnf
+#  notify:
+#  - restart mariadb
+
+#- name: Create MariaDB log file
+#  file: path=/var/log/mysqld.log state=touch owner=mysql group=mysql mode=0775
+
+#- name: Create MariaDB PID directory
+#  file: path=/var/run/mysqld state=directory owner=mysql group=mysql mode=0775
+
+#- name: Start MariaDB Service
+#  service: name=mariadb state=started enabled=yes
+
+
+#- name: Start firewalld
+#  service: name=firewalld state=started enabled=yes
+
+#- name: insert firewalld rule
+#  firewalld: port={{ mysql_port }}/tcp permanent=true state=enabled immediate=yes
+- name: Creates directory databases
+  file: path=/root/databases state=directory
+
+#- name: download chembl22
+#  get_url:
+#    url: ftp://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/{{ chemblversion }}_1_mysql.tar.gz' 
+#    dest: /root/
+
+- name: Test if already downloaded
+  stat: path=/root/databases/{{ chemblversion }}_1_mysql.tar.gz
+  register: st
+
+- name: Download Chembl
+  shell: "wget -O /root/databases/{{ chemblversion }}_1_mysql.tar.gz ftp://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/{{ chemblversion }}_1_mysql.tar.gz"
+  when: not st.stat.exists
+
+- name: Test if already extracted
+  stat: path=/root/databases/{{ chemblversion }}_1_mysql/{{ chemblversion }}_1_mysql.sql
+  register: mys
+
+- name: Extract Database
+  shell: "tar -xvzf /root/databases/{{ chemblversion }}_1_mysql.tar.gz -C /root/databases/"
+  #unarchive: src=/root/databases/{{ chemblversion }}_1_mysql.tar.gz dest=/root/databases/{{ chemblversion }}_1_mysql
+  when: not mys.stat.exists
+
+- name: check if DB {{ chemblversion }} exists
+  shell: mysql -uroot -p{{ mysql_root_password }} -e 'SHOW DATABASES;' | grep {{ chemblversion }}
+  register: dbstatuschembl
+  ignore_errors: True 
+
+# Create database chembl  {{ chemblversion }}
+- name: Create Application Database  {{ chemblversion }}
+  mysql_db: login_user=root login_password={{ mysql_root_password }} name={{ chemblversion }} encoding=utf8 collation=utf8_bin state=present
+  when: dbstatuschembl.rc != 0
+
+
+# Create database chembl {{ chemblversion }}
+#- name: Create Chembl Database
+#  mysql_db: name={{ chemblversion }} state=present
+
+# Create database user {{ dbuser }} with password {{ upassword }}
+#- name: Create Application DB User
+#  mysql_user: name={{ dbuser }} password={{ upassword }} priv=*.*:ALL state=present
+
+# ################################################
+# Chembl database is quite big. Have a nice coffee
+# ################################################
+- name: Import {{ chemblversion }}.sql similar to mysql -u <username> -p <password> < hostname.sql
+  mysql_db: login_user=root login_password={{ mysql_root_password }} state=import name={{ chemblversion }} target=/root/databases/{{ chemblversion }}_1_mysql/{{ chemblversion }}_1_mysql.sql
+# ################################################
+
+
+
+- name: check if DB exists
+  shell: mysql -uroot -p{{ mysql_root_password }} -e 'SHOW DATABASES;' | grep {{ dbname }}
+  register: dbstatus
+  ignore_errors: True
+
+- name: Create SBI Database
+  mysql_db: login_user=root login_password={{ mysql_root_password }} name={{ dbname }} encoding=utf8 collation=utf8_bin state=present
+  when: dbstatus.rc != 0
+
+# Push Empty template in /root/databases
+- name: Add SBI template in /root/databases
+  template: src=SBI_emtpyscheme.sql.j2 dest=/root/databases/SBI_emtpyscheme.sql
+
+# Add SBI_emptyscheme.sql into {{ dbname }} database
+- name: Import SBI_emtpyscheme.sql similar to mysql -u <username> -p <password> < hostname.sql
+  mysql_db: login_user=root login_password={{ mysql_root_password }} state=import name={{ dbname }} target=/root/databases/SBI_emtpyscheme.sql
+  when: dbstatus.rc != 0
+
+- name: Add ExtractChemblDatabase template in /root/databases/
+  template: src=extractChEMBLdata.sh.j2 dest=/root/databases/extractChEMBLdata.sh mode=0775
+
+- name: Test allChEMBLentries.txt already exist 
+  stat: path=/root/databases/allChEMBLentries.txt
+  register: allchemblentries
+
+- name: Launch the script extractChEMBLdata.sh
+  shell: /root/databases/extractChEMBLdata.sh root {{ mysql_root_password }} {{ chemblversion }} > /root/databases/allChEMBLentries.txt
+  when: not allchemblentries.stat.exists
+
+- name: Test allChEMBLentries_sorted.txt already exist
+  stat: path=/root/databases/allChEMBLentries_sorted.txt
+  register: allchemblentries_sorted
+
+- name: Launch the sort on allChEMBLentries
+  shell: sort -k4,6 -t $'\t' /root/databases/allChEMBLentries.txt  > /root/databases/allChEMBLentries_sorted.txt
+  when: not allchemblentries_sorted.stat.exists
+
+- name: Creates directory assays
+  file: path=/root/databases/assays state=directory mode=0775
+
+- name: Add splitInputData template in /root/databases/
+  template: src=splitInputData.pl.j2 dest=/root/databases/assays/splitInputData.pl mode=0775
+
+- name: Launch the splitInputDatafile
+  shell: perl /root/databases/assays/splitInputData.pl /root/databases/allChEMBLentries_sorted.txt `echo "\`cut -f4 /root/databases/allChEMBLentries_sorted.txt | sort -u | wc -l\` / 8" | bc` 8  
+ 
+
+
+
+
+#- name: Extract ChEMBLdata 
+#  shell: mysql -uroot -p{{ mysql_root_password }} {{ chemblversion }} -N -e "select c.canonical_smiles, c.molregno, td.pref_name, a.chembl_id, a.description, act.standard_type, act.standard_relation, act.standard_value, act.standard_units, a.confidence_score, tc.l1,tc.l2, do.domain_name from compound_structures as c, activities as act, assays as a, target_dictionary as td, protein_family_classification as tc, binding_sites as bs, domains as do, target_components as tco, component_class as cc, site_components as sc where c.molregno = act.molregno and act.assay_id=a.assay_id and a.tid = td.tid and td.tid = tco.tid and tco.component_id = cc.component_id and cc.protein_class_id = tc.protein_class_id and td.tid = bs.tid and do.domain_id = sc.domain_id and sc.site_id = bs.site_id and ( act.standard_type like 'Ki' or act.standard_type like 'Kd' or act.standard_type like 'IC50' or act.standard_type like 'EC50') act.standard_units = 'nM' and a.confidence_score > 7 " > /root/databases/allChEMBLentries.txt
+
+#- name: Test mysql 
+#  shell: mysql -uroot -p{{ mysql_root_password }} {{ chemblversion }} -N -e "select * from action_type limit 10" > /root/databases/toto.txt
+#- name: Sort data by assay id and type
+#  command: sort -k4,6 -t $'\t' /root/databases/allChEMBLentries.txt > /root/databases/allChEMBLentries_sorted.txt
+
+
