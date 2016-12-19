@@ -1,0 +1,8 @@
+- name: jenkins | Download
+  command: wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+
+- name: Jenkins | import rpm
+  shell: rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+
+- name:  jenkins | Install
+  yum: name=jenkins state=present
