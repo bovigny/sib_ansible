@@ -1,0 +1,62 @@
+---
+# This playbook contains common plays that will be run on all nodes.
+
+- name: Install ntp
+  yum: name=ntp state=present
+  tags: ntp
+
+- name: Install epel release
+  yum: name=epel-release state=present
+
+- name: Install wget
+  yum: name=wget state=present
+
+- name: Install nano
+  yum: name=nano state=present
+
+- name: Install bc
+  yum: name=bc state=present
+
+- name: Install byobu
+  yum: name=byobu state=present
+
+- name: Install common dependencies
+  yum: name={{ item }} state=installed
+  with_items:
+   - libselinux-python
+   - libsemanage-python
+   - firewalld
+
+- name: Pose host
+  template: src=hosts.j2 dest=/etc/hosts
+
+- name: Configure ntp file
+  template: src=ntp.conf.j2 dest=/etc/ntp.conf
+  tags: ntp
+  notify: restart ntp
+
+- name: Start the ntp service
+  service: name=ntpd state=started enabled=yes
+  tags: ntp
+
+- name: java | Download
+  command: "wget -q -O  /opt/jdk-8-linux-x64.rpm --no-check-certificate --no-cookies --header 'Cookie: oraclelicense=accept-securebackup-cookie' http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111-linux-x64.rpm creates=/opt/jdk-8-linux-x64.rpm"
+
+- name: Java  | install rpm
+  yum: name=/opt/jdk-8-linux-x64.rpm state=present
+
+- name: java | alternative
+  template: src=alternatives.sh.j2 dest=/opt/alternatives.sh 
+
+- name: Java | alternative script run
+  command: /usr/bin/bash /opt/alternatives.sh
+
+- name: Java | Adding the path in the Profile files
+  lineinfile: dest=/home/centos/.bash_profile line='export JAVA_CMD=/usr/bin/java' insertafter='EOF' regexp='export JAVA_CMD=/usr/bin/java' state=present
+
+- name: Java | Adding the path in the Profile files
+  lineinfile: dest=/root/.bash_profile line='export JAVA_CMD=/usr/bin/java' insertafter='EOF' regexp='export JAVA_CMD=/usr/bin/java' state=present
+
+- name: Java  | Source the bash_profile file
+  shell: source /home/centos/.bash_profile
+
