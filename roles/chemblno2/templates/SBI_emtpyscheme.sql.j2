@@ -1,0 +1,402 @@
+-- MySQL dump 10.13  Distrib 5.5.32, for debian-linux-gnu (i686)
+--
+-- Host: localhost    Database: SwissBioisostere
+-- ------------------------------------------------------
+-- Server version	5.5.32-0ubuntu0.12.04.1-log
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `compound`
+--
+
+DROP TABLE IF EXISTS `compound`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `compound` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `molregno` text CHARACTER SET latin1 COLLATE latin1_bin,
+  `chemblid` varchar(45) COLLATE utf8_bin DEFAULT NULL,
+  `smiles` text COLLATE utf8_bin,
+  `mw` double unsigned DEFAULT NULL,
+  `hba` int(10) unsigned DEFAULT NULL,
+  `hbd` int(10) unsigned DEFAULT NULL,
+  `psa` double unsigned DEFAULT NULL,
+  `rtb` int(10) unsigned DEFAULT NULL,
+  `acd_logp` double DEFAULT NULL,
+  `acd_logd` double DEFAULT NULL,
+  `Murcko` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `t_mregno` (`molregno`(8)),
+  KEY `Murcko` (`Murcko`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `fragments`
+--
+
+DROP TABLE IF EXISTS `fragments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fragments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `fragment` varchar(128) COLLATE utf8_bin NOT NULL UNIQUE,
+  `cxfragment` varchar(255) COLLATE utf8_bin NOT NULL UNIQUE,
+  `plainfragid` int(11) NOT NULL,
+  `idtag` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `frag_ind` (`fragment`(13)),
+  KEY `pfid` (`plainfragid`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `fragmentsNoAttachId`
+--
+
+DROP TABLE IF EXISTS `fragmentsNoAttachId`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fragmentsNoAttachId` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `fragment` varchar(128) COLLATE utf8_bin NOT NULL UNIQUE,
+  PRIMARY KEY (`id`),
+  KEY `frag_ind` (`fragment`(13))
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `mmpentries`
+--
+
+DROP TABLE IF EXISTS `mmpentries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mmpentries` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `assayid` varchar(20) NOT NULL,
+  `resulttype` varchar(4) NOT NULL,
+  `target` int(10) unsigned NOT NULL,
+  `targetclass` int(10) unsigned NOT NULL,
+  `domain` int(10) unsigned NOT NULL,
+  `confidence` int(10) unsigned NOT NULL,
+  `assaytype` char(1) DEFAULT NULL,
+  `pubmed_id` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `tc_ind` (`targetclass`),
+  KEY `t_ind` (`target`),
+  KEY `d_ind` (`domain`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `mmpobject`
+--
+
+DROP TABLE IF EXISTS `mmpobject`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mmpobject` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `assay` int(10) NOT NULL,
+  `mmp` int(11) NOT NULL,
+  `mmp_wStereo` int(11) NOT NULL,
+  `id1` int(10) unsigned NOT NULL,
+  `id2` int(10) unsigned NOT NULL,
+  `bioact1` double unsigned NOT NULL,
+  `bioact2` double unsigned NOT NULL,
+  `bioactdiff` double NOT NULL,
+  `attach1` varchar(45) COLLATE utf8_bin NOT NULL,
+  `attach2` varchar(45) COLLATE utf8_bin DEFAULT NULL,
+  `attach3` varchar(45) COLLATE utf8_bin DEFAULT NULL,
+  `constant` text COLLATE utf8_bin NOT NULL,
+  `stereo` tinyint(1) NOT NULL,
+  `rgroup_autoscale_key` int(11) DEFAULT NULL,
+  `rgroup_autoscale_obj` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id1_index` (`id1`),
+  KEY `id2_index` (`id2`),
+  KEY `mmp` (`mmp`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `murcko`
+--
+
+DROP TABLE IF EXISTS `murcko`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `murcko` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `murcko` varchar(255) NOT NULL UNIQUE,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `replacement`
+--
+
+DROP TABLE IF EXISTS `replacement`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `replacement` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `replacement` varchar(255) NOT NULL UNIQUE,
+  `hashkey` int(11) DEFAULT NULL,
+  `hashobject` int(11) DEFAULT NULL,
+  `tc_distance` int(8) DEFAULT NULL,
+  `rgroupdistance` int(11) DEFAULT NULL,
+  `score` double DEFAULT NULL,
+  `score_iso` double DEFAULT NULL,
+  `stereo_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `hk` (`hashkey`),
+  KEY `ho` (`hashobject`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `replacement_rgroupdistance`
+--
+
+DROP TABLE IF EXISTS `replacement_rgroupdistance`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `replacement_rgroupdistance` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `distance` float(7,5) DEFAULT NULL,
+  `distance_stddev` float(5,4) DEFAULT NULL,
+  `distance_12` int(11) DEFAULT NULL,
+  `distance_13` int(11) DEFAULT NULL,
+  `distance_23` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `replacement_wStereo`
+--
+
+DROP TABLE IF EXISTS `replacement_wStereo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `replacement_wStereo` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `replacement_wStereo` varchar(255) NOT NULL UNIQUE,
+  `hashkey_wStereo` int(11) DEFAULT NULL,
+  `hashobject_wStereo` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `hk` (`hashkey_wStereo`),
+  KEY `ho` (`hashobject_wStereo`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `rgroupdescription`
+--
+
+DROP TABLE IF EXISTS `rgroupdescription`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `rgroupdescription` (
+  `fid` int(11) NOT NULL,
+  `cid` int(11) NOT NULL,
+  `MR_1` float(7,5) NOT NULL,
+  `MR_2` float(7,5) NOT NULL,
+  `MR_3` float(7,5) NOT NULL,
+  `MR_4` float(7,5) NOT NULL,
+  `MR_5` float(7,5) NOT NULL,
+  `MR_6` float(7,5) NOT NULL,
+  `MR_7` float(7,5) NOT NULL,
+  `MR_8` float(7,5) NOT NULL,
+  `MR_9` float(7,5) NOT NULL,
+  `MR_10` float(7,5) NOT NULL,
+  `MR_11` float(7,5) NOT NULL,
+  `MR_12` float(7,5) NOT NULL,
+  `logP_1` float(7,5) NOT NULL,
+  `logP_2` float(7,5) NOT NULL,
+  `logP_3` float(7,5) NOT NULL,
+  `logP_4` float(7,5) NOT NULL,
+  `logP_5` float(7,5) NOT NULL,
+  `logP_6` float(7,5) NOT NULL,
+  `logP_7` float(7,5) NOT NULL,
+  `logP_8` float(7,5) NOT NULL,
+  `logP_9` float(7,5) NOT NULL,
+  `logP_10` float(7,5) NOT NULL,
+  `logP_11` float(7,5) NOT NULL,
+  `logP_12` float(7,5) NOT NULL,
+  `TPSA_1` float(7,5) NOT NULL,
+  `TPSA_2` float(7,5) NOT NULL,
+  `TPSA_3` float(7,5) NOT NULL,
+  `TPSA_4` float(7,5) NOT NULL,
+  `TPSA_5` float(7,5) NOT NULL,
+  `TPSA_6` float(7,5) NOT NULL,
+  `TPSA_7` float(7,5) NOT NULL,
+  `TPSA_8` float(7,5) NOT NULL,
+  `TPSA_9` float(7,5) NOT NULL,
+  `TPSA_10` float(7,5) NOT NULL,
+  `TPSA_11` float(7,5) NOT NULL,
+  `TPSA_12` float(7,5) NOT NULL,
+  `HBA_1` float(7,5) NOT NULL,
+  `HBA_2` float(7,5) NOT NULL,
+  `HBA_3` float(7,5) NOT NULL,
+  `HBA_4` float(7,5) NOT NULL,
+  `HBA_5` float(7,5) NOT NULL,
+  `HBA_6` float(7,5) NOT NULL,
+  `HBA_7` float(7,5) NOT NULL,
+  `HBA_8` float(7,5) NOT NULL,
+  `HBA_9` float(7,5) NOT NULL,
+  `HBA_10` float(7,5) NOT NULL,
+  `HBA_11` float(7,5) NOT NULL,
+  `HBA_12` float(7,5) NOT NULL,
+  `HBD_1` float(7,5) NOT NULL,
+  `HBD_2` float(7,5) NOT NULL,
+  `HBD_3` float(7,5) NOT NULL,
+  `HBD_4` float(7,5) NOT NULL,
+  `HBD_5` float(7,5) NOT NULL,
+  `HBD_6` float(7,5) NOT NULL,
+  `HBD_7` float(7,5) NOT NULL,
+  `HBD_8` float(7,5) NOT NULL,
+  `HBD_9` float(7,5) NOT NULL,
+  `HBD_10` float(7,5) NOT NULL,
+  `HBD_11` float(7,5) NOT NULL,
+  `HBD_12` float(7,5) NOT NULL,
+  `AW_1` float(7,5) NOT NULL,
+  `AW_2` float(7,5) NOT NULL,
+  `AW_3` float(7,5) NOT NULL,
+  `AW_4` float(7,5) NOT NULL,
+  `AW_5` float(7,5) NOT NULL,
+  `AW_6` float(7,5) NOT NULL,
+  `AW_7` float(7,5) NOT NULL,
+  `AW_8` float(7,5) NOT NULL,
+  `AW_9` float(7,5) NOT NULL,
+  `AW_10` float(7,5) NOT NULL,
+  `AW_11` float(7,5) NOT NULL,
+  `AW_12` float(7,5) NOT NULL,
+  `PC_1` float(7,5) NOT NULL,
+  `PC_2` float(7,5) NOT NULL,
+  `PC_3` float(7,5) NOT NULL,
+  `PC_4` float(7,5) NOT NULL,
+  `PC_5` float(7,5) NOT NULL,
+  `PC_6` float(7,5) NOT NULL,
+  `PC_7` float(7,5) NOT NULL,
+  `PC_8` float(7,5) NOT NULL,
+  `PC_9` float(7,5) NOT NULL,
+  `PC_10` float(7,5) NOT NULL,
+  `PC_11` float(7,5) NOT NULL,
+  `PC_12` float(7,5) NOT NULL,
+  `dist_1_2` int(11) DEFAULT NULL,
+  `dist_1_3` int(11) DEFAULT NULL,
+  `dist_2_3` int(11) DEFAULT NULL,
+  KEY `fid_idx` (`fid`),
+  KEY `cid_idx` (`cid`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+--
+-- Table structure for table `targetclassdictionary`
+--
+
+DROP TABLE IF EXISTS `targetclassdictionary`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `targetclassdictionary` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `targetclass` varchar(50) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `tc_ind` (`targetclass`(15))
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `targetdictionary`
+--
+
+DROP TABLE IF EXISTS `targetdictionary`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `targetdictionary` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `target` text CHARACTER SET latin1 COLLATE latin1_bin,
+  PRIMARY KEY (`id`),
+  KEY `t_ind` (`target`(15))
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `domaindictionary`
+--
+
+DROP TABLE IF EXISTS `domaindictionary`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `domaindictionary` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `domain` text CHARACTER SET latin1 COLLATE latin1_bin,
+  PRIMARY KEY (`id`),
+  KEY `t_ind` (`domain`(15))
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `fragmentdetails`
+--
+
+CREATE TABLE `fragmentdetails` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `frequency` int(11) unsigned NOT NULL,
+  `score` float(7,5) unsigned DEFAULT NULL,
+  `score_iso` float(7,5) unsigned DEFAULT NULL, 
+  `better` int(11) unsigned NOT NULL,
+  `equal` int(11) unsigned NOT NULL,
+  `worse` int(11) unsigned NOT NULL,
+  `logp_diff` float(7,5) DEFAULT NULL,
+  `tpsa_diff` float(9,5) DEFAULT NULL,
+  `mw_diff` float(9,5) DEFAULT NULL,
+  `rgroupdist` float(7,5) unsigned DEFAULT NULL,
+  `counttenfold` int unsigned NOT NULL,
+  `counthundredfold` int unsigned NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `constantPart`
+--
+
+DROP TABLE IF EXISTS `constantPart`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `constantPart` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `constant` varchar(255) COLLATE utf8_bin NOT NULL UNIQUE,
+  PRIMARY KEY (`id`),
+  KEY `const_ind` (`constant`(13))
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2013-08-12 14:43:27

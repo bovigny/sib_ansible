@@ -1,0 +1,9 @@
+- name: Creates directory assays
+  file: path=/root/databases/assays state=directory mode=0775
+
+- name: Add splitInputData template in /root/databases/
+  template: src=splitInputData.pl.j2 dest=/root/databases/assays/splitInputData.pl mode=0775
+
+- name: Launch the splitInputDatafile
+  shell: perl /root/databases/assays/splitInputData.pl /root/databases/allChEMBLentries_sorted.txt `echo "\`cut -f4 /root/databases/allChEMBLentries_sorted.txt | sort -u | wc -l\` / 8" | bc` 8
+

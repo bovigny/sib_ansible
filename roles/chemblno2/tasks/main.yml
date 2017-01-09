@@ -1,0 +1,22 @@
+- name: Add ExtractChemblDatabase template in /root/databases/
+  template: src=extractChEMBLdata.sh.j2 dest=/root/databases/extractChEMBLdata.sh mode=0775
+
+- name: Test allChEMBLentries.txt already exist
+  stat: path=/root/databases/allChEMBLentries.txt
+  register: allchemblentries
+
+- name: Launch the script extractChEMBLdata.sh
+  shell: /root/databases/extractChEMBLdata.sh root {{ mysql_root_password }} {{ chemblversion }} > /root/databases/allChEMBLentries.txt
+  when: not allchemblentries.stat.exists
+
+- name: Test allChEMBLentries_sorted.txt already exist
+  stat: path=/root/databases/allChEMBLentries_sorted.txt
+  register: allchemblentries_sorted
+
+- name: Launch the sort on allChEMBLentries
+  shell: sort -k4,6 -t $'\t' /root/databases/allChEMBLentries.txt  > /root/databases/allChEMBLentries_sorted.txt
+  when: not allchemblentries_sorted.stat.exists
+
+#- name: Creates directory assays
+#  file: path=/root/databases/assays state=directory mode=0775
+

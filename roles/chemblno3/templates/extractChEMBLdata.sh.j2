@@ -1,0 +1,51 @@
+mysql -u$1 -p$2 $3 -N -e "select 
+c.canonical_smiles, 
+c.molregno, 
+td.pref_name, 
+a.chembl_id, 
+a.description, 
+act.standard_type, 
+act.standard_relation, 
+act.standard_value, 
+act.standard_units, 
+a.confidence_score, 
+tc.l1,tc.l2, 
+do.domain_name
+
+from 
+
+compound_structures as c,
+activities as act,
+assays as a,
+target_dictionary as td,
+protein_family_classification as tc,
+binding_sites as bs,
+domains as do,
+target_components as tco,
+component_class as cc,
+site_components as sc
+
+where
+
+c.molregno = act.molregno and
+act.assay_id=a.assay_id and
+a.tid = td.tid and
+td.tid = tco.tid and
+tco.component_id = cc.component_id and
+cc.protein_class_id = tc.protein_class_id and
+td.tid = bs.tid and
+do.domain_id = sc.domain_id and
+sc.site_id = bs.site_id and
+
+( 
+  act.standard_type like 'Ki' or
+  act.standard_type like 'Kd' or
+  act.standard_type like 'IC50' or
+  act.standard_type like 'EC50'
+) and 
+act.standard_units = 'nM' and
+a.confidence_score > 7
+
+;" 
+
+
